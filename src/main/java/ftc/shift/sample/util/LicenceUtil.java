@@ -24,7 +24,9 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.LinkedList;
 import java.util.UUID;
 
 public class LicenceUtil {
@@ -43,6 +45,31 @@ public class LicenceUtil {
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             e.printStackTrace();
         }
+    }
+
+
+    private static String addMarksToKey(String key) {
+        StringBuilder builder = new StringBuilder(key);
+
+        for (int i = 1; i <= key.length() / 5; i++)
+            builder.insert(i * 5 + (i - 1), (char) (key.charAt((i - 1) * 5) + 1));
+
+        return builder.toString();
+    }
+
+    private static String removeMarksFromKey(String key){
+        StringBuilder builder = new StringBuilder(key);
+        for (int i = 1; i <= key.length() / 6; i++)
+            builder.delete(i * 6 - i, i * 6 - i + 1);
+
+        return builder.toString();
+    }
+
+    private static boolean checkMarks(String key){
+        for (int i = 1; i <= key.length() / 6; i++)
+            if(key.charAt(i * 6 - 1) != (char) (key.charAt((i - 1) * 6) + 1))
+                return false;
+        return true;
     }
 
     private static String encryptPublicKey(PublicKey publicKey) throws LicenceGeneratorException {
