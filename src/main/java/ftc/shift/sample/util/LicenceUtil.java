@@ -138,7 +138,7 @@ public class LicenceUtil {
     }
 
     public static String generateLicenseString(Licence license) {
-        return Base64.getEncoder().encodeToString(gson.toJson(license).getBytes(StandardCharsets.UTF_8));
+        return addMarksToKey(Base64.getEncoder().encodeToString(gson.toJson(license).getBytes(StandardCharsets.UTF_8)));
     }
 
     //Подразумевается что пользователь утилиты должет логировать экспешены
@@ -172,7 +172,7 @@ public class LicenceUtil {
     //Подразумевается что пользователь утилиты должет логировать экспешены
 
     public static PublicLicence getLicenseFromString(String licenseString) throws LicenceDecodeException {
-        var encodedLicense = new String(Base64.getDecoder().decode(licenseString.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
+        var encodedLicense = removeMarksFromKey(new String(Base64.getDecoder().decode(licenseString.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 
         try {
             return gson.fromJson(encodedLicense, PublicLicence.class);
