@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
+import ftc.shift.sample.entity.Customer;
 import ftc.shift.sample.entity.Licence;
 import ftc.shift.sample.exception.LicenceDecodeException;
 import ftc.shift.sample.exception.LicenceGeneratorException;
@@ -142,7 +143,7 @@ public class LicenceUtil {
     }
 
     //Подразумевается что пользователь утилиты должет логировать экспешены
-    public static Licence generateLicence(Long userId, Long durationInDay) throws LicenceGeneratorException {
+    public static Licence generateLicence(Long userId, Long durationInDay, String productType, String productVersion) throws LicenceGeneratorException {
 
         keyPairGenerator.initialize(1024, new SecureRandom());
 
@@ -157,14 +158,19 @@ public class LicenceUtil {
 
         var licenseKey = encryptPublicKey(publicKey);
 
+        Customer customer = new Customer();
+        customer.setId(userId);
+
         return new Licence(licenseID,
-            Base64.getEncoder().encodeToString(privateKey.getEncoded()),
-            licenseKey,
-            Date.valueOf(LocalDate.now()),
-            Date.valueOf(LocalDate.now().plusDays(durationInDay)),
-            userId,
-            "default",
-            null);
+                Base64.getEncoder().encodeToString(privateKey.getEncoded()),
+                licenseKey,
+                Date.valueOf(LocalDate.now()),
+                Date.valueOf(LocalDate.now().plusDays(durationInDay)),
+                customer,
+                "default",
+                null,
+                productType,
+                productVersion);
     }
 
 
@@ -175,7 +181,7 @@ public class LicenceUtil {
         try {
             var encodedLicense = new String(Base64.getDecoder().decode(removeMarksFromKey(licenseString).getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
             return gson.fromJson(encodedLicense, PublicLicence.class);
-        } catch (JsonSyntaxException e) {
+        } catch (JsonSyntaxException | IllegalArgumentException e) {
             throw new LicenceDecodeException("Wrong licence string", e);
         }
 
@@ -206,21 +212,23 @@ public class LicenceUtil {
 
             return randomTestString.equals(new String(decode.doFinal(), StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException |
-            InvalidKeyException |
-            NoSuchPaddingException |
-            BadPaddingException |
-            IllegalBlockSizeException e) {
+                InvalidKeyException |
+                NoSuchPaddingException |
+                BadPaddingException |
+                IllegalBlockSizeException e) {
             throw new LicenceDecodeException(e);
         }
     }
 
     public static PublicLicence getPublicLicence(Licence licence) {
         return new PublicLicence(licence.getId(),
-            licence.getLicenceKey(),
-            licence.getCreateDate(),
-            licence.getEndDate(),
-            licence.getType(),
-            licence.getNumberOfLicences());
+                licence.getLicenceKey(),
+                licence.getCreateDate(),
+                licence.getEndDate(),
+                licence.getType(),
+                licence.getNumberOfLicences(),
+                licence.getProductType(),
+                licence.getProductVersion());
     }
 
     @Getter
@@ -247,6 +255,14 @@ public class LicenceUtil {
         private final String type;
 
         @Expose
-        private final Integer numberOfLicences;
+        private final Long numberOfLicences;
+
+        @Expose
+        @NonNull
+        private final String productType;
+
+        @Expose
+        @NonNull
+        private final String productVersion;
     }
 }
