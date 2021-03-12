@@ -172,9 +172,8 @@ public class LicenceUtil {
     //Подразумевается что пользователь утилиты должет логировать экспешены
 
     public static PublicLicence getLicenseFromString(String licenseString) throws LicenceDecodeException {
-        var encodedLicense = new String(Base64.getDecoder().decode(removeMarksFromKey(licenseString).getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
-
         try {
+            var encodedLicense = new String(Base64.getDecoder().decode(removeMarksFromKey(licenseString).getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
             return gson.fromJson(encodedLicense, PublicLicence.class);
         } catch (JsonSyntaxException e) {
             throw new LicenceDecodeException("Wrong licence string", e);
